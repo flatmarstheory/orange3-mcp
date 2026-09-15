@@ -9,6 +9,13 @@ dependencies = [
     "mcp[cli]>=2.0.0",
 ]
 
+[project.optional-dependencies]
+web = [
+    "fastapi>=0.110",
+    "uvicorn[standard]>=0.29",
+    "openai>=1.30",
+]
+
 [project.scripts]
 orange3-mcp = "orange3_mcp.server:main"
 

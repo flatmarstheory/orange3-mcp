@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Orange3 Workflow Builder</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a class="skip-link" href="#main">Skip to main content</a>
+
+<header class="topbar">
+  <h1>Orange3 Workflow Builder</h1>
+  <div class="workflow-controls">
+    <label for="workflow-select">Workflow</label>
+    <select id="workflow-select" aria-label="Select active workflow"></select>
+    <button id="new-workflow-btn" type="button">New workflow</button>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <button role="tab" id="tab-builder" aria-controls="panel-builder" aria-selected="true" class="tab active">Builder</button>
+  <button role="tab" id="tab-chat" aria-controls="panel-chat" aria-selected="false" class="tab">Chat</button>
+  <button role="tab" id="tab-addons" aria-controls="panel-addons" aria-selected="false" class="tab">Add-ons</button>
+</nav>
+
+<main id="main">
+
+  <!-- ===================== Builder ===================== -->
+  <section id="panel-builder" role="tabpanel" aria-labelledby="tab-builder" class="panel active">
+    <div class="builder-grid">
+
+      <aside class="palette" aria-label="Widget palette">
+        <h2>Widgets</h2>
+        <div id="palette-list"></div>
+      </aside>
+
+      <div class="canvas-wrap">
+        <h2 class="visually-hidden">Workflow canvas</h2>
+        <svg id="canvas" viewBox="0 0 1000 600" role="img" aria-label="Workflow diagram: drag nodes to reposition, or use the node list below to edit them"></svg>
+        <p id="canvas-status" class="hint" aria-live="polite"></p>
+      </div>
+
+      <aside class="side-panel" aria-label="Workflow details">
+        <section>
+          <h2>Connect nodes</h2>
+          <form id="connect-form">
+            <label for="link-source-node">From node / output</label>
+            <div class="row">
+              <select id="link-source-node" aria-label="Source node"></select>
+              <select id="link-source-channel" aria-label="Source output channel"></select>
+            </div>
+            <label for="link-sink-node">To node / input</label>
+            <div class="row">
+              <select id="link-sink-node" aria-label="Sink node"></select>
+              <select id="link-sink-channel" aria-label="Sink input channel"></select>
+            </div>
+            <button type="submit">Connect</button>
+          </form>
+        </section>
+
+        <section>
+          <h2>Nodes</h2>
+          <ul id="node-list" class="entity-list"></ul>
+        </section>
+
+        <section>
+          <h2>Links</h2>
+          <ul id="link-list" class="entity-list"></ul>
+        </section>
+
+        <section>
+          <h2>Save / load</h2>
+          <form id="save-form" class="row">
+            <label for="save-filename" class="visually-hidden">Filename</label>
+            <input id="save-filename" type="text" placeholder="workflow.ows" autocomplete="off">
+            <button type="submit">Save .ows</button>
+          </form>
+          <div class="row">
+            <label for="load-select" class="visually-hidden">Load saved file</label>
+            <select id="load-select" aria-label="Saved .ows files"></select>
+            <button id="load-btn" type="button">Load</button>
+          </div>
+          <a id="download-link" class="hidden" download>Download saved file</a>
+        </section>
+      </aside>
+    </div>
+
+    <div id="node-editor" class="node-editor hidden" aria-live="polite">
+      <h2>Edit node <span id="node-editor-title"></span></h2>
+      <form id="node-editor-form">
+        <label for="node-title">Title</label>
+        <input id="node-title" type="text">
+        <div class="row">
+          <label for="node-x">X</label>
+          <input id="node-x" type="number">
+          <label for="node-y">Y</label>
+          <input id="node-y" type="number">
+        </div>
+        <label for="node-properties">Properties (JSON)</label>
+        <textarea id="node-properties" rows="4" spellcheck="false"></textarea>
+        <div class="row">
+          <button type="submit">Save changes</button>
+          <button type="button" id="node-delete-btn" class="danger">Delete node</button>
+          <button type="button" id="node-editor-close">Close</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===================== Chat ===================== -->
+  <section id="panel-chat" role="tabpanel" aria-labelledby="tab-chat" class="panel">
+    <p id="chat-disabled-note" class="hint hidden">
+      Chat requires an OpenAI API key. Set <code>OPENAI_API_KEY</code> in the server's environment
+      and restart the container to enable it.
+    </p>
+    <div id="chat-log" class="chat-log" aria-live="polite" aria-label="Chat conversation"></div>
+    <form id="chat-form" class="row">
+      <label for="chat-input" class="visually-hidden">Message</label>
+      <input id="chat-input" type="text" placeholder="e.g. create a workflow that reads a file and shows a scatter plot" autocomplete="off">
+      <button type="submit">Send</button>
+      <button type="button" id="chat-reset-btn">Reset conversation</button>
+    </form>
+  </section>
+
+  <!-- ===================== Add-ons ===================== -->
+  <section id="panel-addons" role="tabpanel" aria-labelledby="tab-addons" class="panel">
+    <section>
+      <h2>Installed add-ons</h2>
+      <ul id="installed-addons-list" class="entity-list"></ul>
+    </section>
+    <section>
+      <h2>Known add-ons</h2>
+      <form id="addon-search-form" class="row">
+        <label for="addon-search" class="visually-hidden">Search add-ons</label>
+        <input id="addon-search" type="text" placeholder="Search by name or description" autocomplete="off">
+        <button type="submit">Search</button>
+      </form>
+      <ul id="addon-search-list" class="entity-list"></ul>
+    </section>
+  </section>
+
+</main>
+
+<div id="toast" role="status" aria-live="assertive" class="toast hidden"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

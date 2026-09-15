@@ -140,6 +140,19 @@ class Workflow:
         node.properties.update(properties)
         return node
 
+    def update_node(self, node_id: str, title: str | None = None,
+                     x: float | None = None, y: float | None = None) -> Node:
+        node = self.nodes.get(node_id)
+        if node is None:
+            raise WorkflowError(f"No such node id: {node_id}")
+        if title is not None:
+            node.title = title
+        if x is not None:
+            node.x = x
+        if y is not None:
+            node.y = y
+        return node
+
     def describe(self) -> dict:
         return {
             "id": self.id,
@@ -306,6 +319,72 @@ class Workflow:
         with open(path, "r", encoding="utf-8") as f:
             xml_text = f.read()
         return cls.from_xml(xml_text, path=path)
+
+    # -- full-fidelity state (for persisting in-progress sessions) ----------
+
+    def to_state(self) -> dict:
+        """Serialize full session state (including id and sequence counters),
+        for persisting in-progress workflows across restarts. Distinct from
+        the Orange .ows scheme format produced by to_xml()."""
+        return {
+            "id": self.id,
+            "title": self.title,
+            "description": self.description,
+            "path": self.path,
+            "node_seq": self._node_seq,
+            "link_seq": self._link_seq,
+            "nodes": [
+                {
+                    "id": n.id,
+                    "widget_id": n.widget_id,
+                    "qualified_name": n.qualified_name,
+                    "title": n.title,
+                    "x": n.x,
+                    "y": n.y,
+                    "properties": n.properties,
+                }
+                for n in self.nodes.values()
+            ],
+            "links": [
+                {
+                    "id": l.id,
+                    "source_node_id": l.source_node_id,
+                    "source_channel": l.source_channel,
+                    "sink_node_id": l.sink_node_id,
+                    "sink_channel": l.sink_channel,
+                    "enabled": l.enabled,
+                }
+                for l in self.links.values()
+            ],
+        }
+
+    @classmethod
+    def from_state(cls, data: dict) -> "Workflow":
+        wf = cls(title=data.get("title", "Untitled"), description=data.get("description", ""))
+        wf.id = data["id"]
+        wf.path = data.get("path")
+        for n in data.get("nodes", []):
+            wf.nodes[n["id"]] = Node(
+                id=n["id"],
+                widget_id=n["widget_id"],
+                qualified_name=n["qualified_name"],
+                title=n["title"],
+                x=n["x"],
+                y=n["y"],
+                properties=n.get("properties", {}),
+            )
+        for l in data.get("links", []):
+            wf.links[l["id"]] = Link(
+                id=l["id"],
+                source_node_id=l["source_node_id"],
+                source_channel=l["source_channel"],
+                sink_node_id=l["sink_node_id"],
+                sink_channel=l["sink_channel"],
+                enabled=l.get("enabled", True),
+            )
+        wf._node_seq = data.get("node_seq", len(wf.nodes))
+        wf._link_seq = data.get("link_seq", len(wf.links))
+        return wf
 
 
 def _parse_position(position: str) -> tuple[float, float]:

@@ -1,8 +1,16 @@
 # orange3-mcp
 
-An MCP server for building and configuring [Orange3](https://orangedatamining.com/) data-mining
-workflows, and for managing Orange3 add-ons — driven from any MCP client (e.g. Claude Desktop,
-Claude Code).
+Tools for building and configuring [Orange3](https://orangedatamining.com/) data-mining workflows
+and managing Orange3 add-ons, in two forms sharing the same core logic ([`src/orange3_mcp/workflow.py`](src/orange3_mcp/workflow.py),
+[`widgets.py`](src/orange3_mcp/widgets.py), [`addons.py`](src/orange3_mcp/addons.py)):
+
+- **MCP server** (below) — for MCP clients like Claude Desktop/Code.
+- **[Web app](#web-app-docker-compose)** — a self-contained Docker Compose deployment with a
+  browser GUI, for running on your own machine.
+
+## MCP server
+
+An MCP server driven from any MCP client (e.g. Claude Desktop, Claude Code).
 
 It does **not** require Orange3 itself to be installed: workflows are created and edited as
 in-memory graphs and serialized directly to Orange's `.ows` scheme XML format, so it works
@@ -82,6 +90,43 @@ Or, without installing the console script, point at the module directly:
 | `search_addons(query?)` | Browse known community add-ons |
 | `install_addon(name, version?)` | pip install, with confirmation prompt |
 | `uninstall_addon(name)` | pip uninstall, with confirmation prompt |
+
+## Web app (Docker Compose)
+
+A standalone webapp — a FastAPI backend plus a plain HTML/CSS/JS GUI — running the same workflow
+and add-on logic as the MCP server, with no MCP client required.
+
+```bash
+cp .env.example .env   # optional: set OPENAI_API_KEY to enable the Chat tab
+docker compose up --build
+```
+
+Open **http://localhost:8000**. Saved `.ows` files and in-progress workflow state live under
+`./data` on the host (mounted into the container), so they survive `docker compose down`/`up`.
+
+The GUI has three tabs:
+
+- **Builder** — a visual node canvas: add widgets from the palette, drag nodes to reposition them
+  (or set their X/Y directly in the node editor), connect ports by clicking an output then an input
+  (or use the plain "Connect nodes" form, fully keyboard-operable), edit a widget's properties as
+  JSON, and save/load `.ows` files from the mounted data volume.
+- **Chat** — natural-language workflow editing via OpenAI function-calling, using the same tools
+  as the Builder. Requires `OPENAI_API_KEY`; without it the tab explains how to enable it and stays
+  disabled rather than failing silently. The model can read/edit workflows but cannot install or
+  remove add-ons — that stays behind the explicit, confirmed buttons in the Add-ons tab.
+- **Add-ons** — list installed Orange3 add-ons and browse/install known community ones (`pip`
+  install/uninstall inside the container), each gated by a confirmation dialog.
+
+This deployment intentionally does **not** expose the MCP protocol — it's a standalone webapp. Run
+the MCP server (above) separately if you also want to drive it from an MCP client.
+
+### Configuration
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `OPENAI_API_KEY` | unset | Enables the Chat tab. Without it, everything else still works. |
+| `OPENAI_MODEL` | `gpt-4o-mini` | Model used for the Chat tab. |
+| `ORANGE3_MCP_DATA_DIR` | `/data` (container) | Where `.ows` files and workflow session state are stored; set via `docker-compose.yml`'s volume mount, not usually overridden directly. |
 
 ## Extending the widget catalog
 

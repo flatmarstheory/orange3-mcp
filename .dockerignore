@@ -1,9 +1,9 @@
+.venv/
 __pycache__/
 *.pyc
-.venv/
 *.egg-info/
 build/
 dist/
-*.ows
-.env
+.git/
 data/
+*.ows
