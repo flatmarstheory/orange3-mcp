@@ -78,18 +78,41 @@ Or, without installing the console script, point at the module directly:
 | `list_widgets(category?)` | Browse the widget catalog |
 | `create_workflow(title, description?)` | Start a new workflow, returns `workflow_id` |
 | `describe_workflow(workflow_id)` | Inspect current nodes/links |
-| `list_workflows()` | List all in-memory workflow sessions |
+| `list_workflows()` | List all persisted workflow sessions |
+| `export_workflow(workflow_id)` | Return .ows XML content for a client-side file/download; no container copying needed |
 | `add_node(workflow_id, widget, title?, x?, y?, properties?)` | Add a widget node |
 | `remove_node(workflow_id, node_id)` | Remove a node and its links |
 | `connect_nodes(workflow_id, source_node_id, source_channel, sink_node_id, sink_channel)` | Link two nodes |
 | `remove_link(workflow_id, link_id)` | Remove a link |
 | `set_node_properties(workflow_id, node_id, properties)` | Configure a widget |
-| `save_workflow(workflow_id, path)` | Write the `.ows` file |
+| `save_workflow(workflow_id, path)` | Write the server-side `.ows` file and return its XML content |
 | `load_workflow(path)` | Load an existing `.ows` file |
 | `list_installed_addons()` | Add-ons installed in this environment |
 | `search_addons(query?)` | Browse known community add-ons |
 | `install_addon(name, version?)` | pip install, with confirmation prompt |
 | `uninstall_addon(name)` | pip uninstall, with confirmation prompt |
+
+## Docker MCP Toolkit
+
+The server can also run as a stdio container managed by Docker MCP Toolkit. The
+server-only image is built from [`Dockerfile.mcp`](Dockerfile.mcp), and the
+Docker MCP Registry-style metadata is in [`docker-mcp/server.yaml`](docker-mcp/server.yaml).
+Neither starts the web GUI. See [`docker-mcp/README.md`](docker-mcp/README.md)
+for local build and Toolkit setup commands.
+
+Workflow sessions are saved after each edit and reloaded on each call. Set
+`ORANGE3_MCP_DATA_DIR` to a shared persistent directory; local runs default to
+`./data`, and the Docker image uses `/data`. Mount a named volume or host
+directory at `/data` so sessions survive container replacement. The Docker
+setup guide includes a client configuration with a named volume.
+
+Docker MCP Toolkit can expose enabled servers through its MCP gateway, so Claude
+Code can use this server's workflow tools after the gateway is connected. Keep
+the gateway long-lived for multi-call workflow editing (`--long-lived`). This
+integration does not add retrieval-augmented generation (RAG): the project has
+no document ingestion, embeddings, vector store, or retrieval tool. RAG would
+require enabling another MCP retrieval server or adding those capabilities to
+this project.
 
 ## Web app (Docker Compose)
 

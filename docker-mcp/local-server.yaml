@@ -1,0 +1,13 @@
+# Runtime server entry for `docker mcp profile create --server file://...`.
+# This differs from the Registry submission schema in server.yaml.
+name: orange3-mcp
+type: server
+title: Orange3 MCP
+description: Build, inspect, and save Orange3 workflows with persistent session state.
+image: orange3-mcp:local
+longLived: true
+volumes:
+  - orange3-mcp-data:/data:rw
+env:
+  - name: ORANGE3_MCP_DATA_DIR
+    value: /data

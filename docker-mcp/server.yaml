@@ -1,0 +1,31 @@
+name: orange3-mcp
+image: orange3-mcp:local
+type: server
+longLived: true
+meta:
+  category: data-science
+  tags:
+    - orange3
+    - data-science
+    - workflows
+about:
+  title: Orange3 MCP
+  description: Build, inspect, and save Orange3 data-mining workflows through MCP.
+  icon: https://orangedatamining.com/favicon.ico
+source:
+  project: https://github.com/flatmarstheory/orange3-mcp
+  commit: a3aecbac6744906a3b028df9fc26873affb6ec24
+  dockerfile: Dockerfile.mcp
+run:
+  volumes:
+    - '{{orange3-mcp.workspace}}:/data'
+config:
+  description: Select a host directory for workflow state and .ows files.
+  parameters:
+    type: object
+    properties:
+      workspace:
+        type: string
+        description: Host directory to mount at /data
+    required:
+      - workspace
